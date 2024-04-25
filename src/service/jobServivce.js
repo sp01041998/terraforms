@@ -5,17 +5,24 @@ exports.createJob = async(bodyData) => {
     const {title, description, location, deadline, mobile, email} = bodyData || {}
 
     const dealineDate = new Date(deadline)
-    const milliSec = dealineDate.getTime()
+    const dealineDateInMilliSec = dealineDate.getTime()
 
     const dataForJob = {
         title,
         description,
         location,
-        deadline : milliSec,
+        deadline : dealineDateInMilliSec,
         mobile, 
         email
     }
-    // check if there's alreday job exist(atleast one propwerty differ)
+    const isJobAlreadyExist  = await jobModel.findOne({title, description, location, deadline : dealineDateInMilliSec, mobile, email})
+    if(isJobAlreadyExist){
+        return {
+            status : false,
+            code : 400,
+            message : "There's already exist a job with same details"
+        }
+    }
     const jobPosting = await jobModel.create(dataForJob)
     return {
         statsu : true,
@@ -35,7 +42,7 @@ exports.archievedJob = async(jobId) => {
     if(!updateJob){
         return {
             status : false,
-            code : 400,
+            code : 404,
             message : "Job does not exist"
         }
     }
@@ -74,4 +81,42 @@ exports.getAllApplicants = async(jobId) => {
         data : allEnrolledApplicants
     }
 
+}
+
+exports.getAllJobs = async() => {
+    // we can filter only those jobs whome deadline is not passed
+    const allJobs = await jobModel.find({isDeleted : false, isArchieved : false}).lean()
+    if(!allJobs.length){
+        return {
+            status : false,
+            code : 400,
+            message : "No active jobs found"
+        }
+    }
+    const currentTime = new Date().getTime()
+    let jobs= []
+    allJobs.forEach((jobData) => {
+        const {deadline} = jobData || {}
+        if((deadline - 21 * 24 * 60 * 60 * 1000) < currentTime){
+            jobData["cardColor"] = "green"
+            // jobs.push(jobData)
+            return
+        }
+        if((deadline - 14 * 24 * 60 * 60 * 1000) < currentTime){
+            jobData["cardColor"] = "yellow"
+            // jobs.push(jobData)
+            return
+        }
+        if((deadline - 3 * 24 * 60 * 60 * 1000) < currentTime){
+            jobData["cardColor"] = "red"
+            // jobs.push(jobData)
+            return 
+        }
+    });
+
+    return {
+        status : true,
+        code : 200,
+        data : allJobs
+    }
 }

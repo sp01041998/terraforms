@@ -1,6 +1,5 @@
 const express = require("express")
 const mongoose = require("mongoose")
-const multer = require("multer")
 
 const app = express()
 
@@ -19,5 +18,6 @@ mongoose.connect("mongodb+srv://sp01041998:daredevil%4097@cluster0.deqvc.mongodb
 }).catch((error) => {
     console.log(error)
 })
+
 
 

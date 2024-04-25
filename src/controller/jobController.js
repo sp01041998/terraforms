@@ -1,13 +1,14 @@
 const jobService = require("../service/jobServivce")
+const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/
+
 
 exports.createJob = async(req, res) => {
     const {title, description, location, deadline, mobile, email} = req?.body || {}
-    console.log(title)
     try{
         if(!title || !description || !location || !deadline || !mobile || !email){
             return res.status(400).send({status : false, message : "All fields are mandatory"})
         }
-        // use regex for email validation(will do it later)
+    // can use regex to validate on email
         const {status, code, data, message} = await jobService.createJob(req?.body)
         return res.status(code || 200).send({status : true, data, message})
 
@@ -49,6 +50,21 @@ exports.getAllApplicants = async(req, res) => {
 
     }catch(error){
         console.log("Error while making a job posting inactive", req?.body)
+        return res.status(500).send({
+            status : false,
+            message : error?.message || error
+        })
+    }
+}
+
+exports.getAllJobs = async(req, res) => {
+   
+    try{
+        const {status, code, data, message} = await jobService.getAllJobs()
+        return res.status(code || 200).send({status : true, data, message})
+
+    }catch(error){
+        console.log("Error while fetching all active jobs", req?.body)
         return res.status(500).send({
             status : false,
             message : error?.message || error
